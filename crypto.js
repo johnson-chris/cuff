@@ -233,6 +233,60 @@ async function decryptBackup(backup) {
     }
 }
 
+// Change password - re-encrypt all data with new password
+async function changePassword(currentPassword, newPassword) {
+    // First verify current password
+    const storedSalt = localStorage.getItem(SALT_KEY);
+    if (!storedSalt) {
+        throw new Error('No encryption data found');
+    }
+
+    const currentSalt = new Uint8Array(base64ToBuffer(storedSalt));
+    const testKey = await deriveKey(currentPassword, currentSalt);
+
+    // Verify current password by decrypting verification token
+    const verifyData = localStorage.getItem(VERIFY_KEY);
+    if (!verifyData) {
+        throw new Error('No verification data found');
+    }
+
+    try {
+        const decrypted = await decryptData(JSON.parse(verifyData), testKey);
+        if (decrypted.verify !== 'bp-tracker') {
+            throw new Error('Invalid verification');
+        }
+    } catch (e) {
+        throw new Error('Current password is incorrect');
+    }
+
+    // Load current readings with old key
+    const storedReadings = localStorage.getItem(CRYPTO_STORAGE_KEY);
+    let readings = [];
+    if (storedReadings) {
+        readings = await decryptData(JSON.parse(storedReadings), testKey);
+    }
+
+    // Generate new salt and derive new key
+    const newSalt = generateSalt();
+    const newKey = await deriveKey(newPassword, newSalt);
+
+    // Save new salt
+    localStorage.setItem(SALT_KEY, bufferToBase64(newSalt));
+
+    // Create new verification token
+    const newVerifyData = await encryptData({ verify: 'bp-tracker' }, newKey);
+    localStorage.setItem(VERIFY_KEY, JSON.stringify(newVerifyData));
+
+    // Re-encrypt readings with new key
+    const newEncryptedReadings = await encryptData(readings, newKey);
+    localStorage.setItem(CRYPTO_STORAGE_KEY, JSON.stringify(newEncryptedReadings));
+
+    // Update the active key
+    derivedKey = newKey;
+
+    return true;
+}
+
 // Export functions for use in app.js
 window.CryptoModule = {
     isFirstTimeSetup,
@@ -241,5 +295,6 @@ window.CryptoModule = {
     loadEncryptedReadings,
     isEncryptionReady,
     createEncryptedBackup,
-    decryptBackup
+    decryptBackup,
+    changePassword
 };

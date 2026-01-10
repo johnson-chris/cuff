@@ -135,6 +135,14 @@ function initEventListeners() {
         document.getElementById('restore-file').click();
     });
     document.getElementById('restore-file').addEventListener('change', handleRestore);
+
+    // Change Password
+    document.getElementById('change-password-btn').addEventListener('click', openChangePasswordModal);
+    document.getElementById('change-password-cancel').addEventListener('click', closeChangePasswordModal);
+    document.getElementById('change-password-form').addEventListener('submit', handleChangePassword);
+    document.getElementById('change-password-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'change-password-modal') closeChangePasswordModal();
+    });
 }
 
 function setDefaultDateTime() {
@@ -539,6 +547,60 @@ async function handleRestore(e) {
     }
 
     e.target.value = '';
+}
+
+// Change Password Functions
+function openChangePasswordModal() {
+    document.getElementById('change-password-modal').classList.add('active');
+    document.getElementById('current-password').focus();
+}
+
+function closeChangePasswordModal() {
+    document.getElementById('change-password-modal').classList.remove('active');
+    document.getElementById('change-password-form').reset();
+    document.getElementById('change-password-error').style.display = 'none';
+}
+
+async function handleChangePassword(e) {
+    e.preventDefault();
+
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('new-password-confirm').value;
+    const errorEl = document.getElementById('change-password-error');
+    const submitBtn = document.getElementById('change-password-submit');
+
+    // Hide previous error
+    errorEl.style.display = 'none';
+
+    // Validate new password
+    if (newPassword.length < 4) {
+        errorEl.textContent = 'New password must be at least 4 characters';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        errorEl.textContent = 'New passwords do not match';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Changing...';
+
+        await window.CryptoModule.changePassword(currentPassword, newPassword);
+
+        closeChangePasswordModal();
+        alert('Password changed successfully!');
+    } catch (error) {
+        errorEl.textContent = error.message;
+        errorEl.style.display = 'block';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Change Password';
+    }
 }
 
 // Make deleteReading available globally for onclick handlers
