@@ -191,13 +191,15 @@ function handleFormSubmit(e) {
     const diastolic = parseInt(document.getElementById('diastolic').value);
     const pulse = parseInt(document.getElementById('pulse').value);
     const timestamp = document.getElementById('reading-datetime').value;
+    const notes = document.getElementById('reading-notes').value.trim();
 
     const reading = {
         id: generateId(),
         systolic,
         diastolic,
         pulse,
-        timestamp: new Date(timestamp).toISOString()
+        timestamp: new Date(timestamp).toISOString(),
+        notes: notes || ''
     };
 
     const outliers = checkOutliers(reading);
@@ -289,6 +291,8 @@ function renderReadings() {
     readingsBody.innerHTML = readings.map(reading => {
         const date = new Date(reading.timestamp);
         const category = getBPCategory(reading.systolic, reading.diastolic);
+        const notes = reading.notes || '';
+        const notesDisplay = notes ? `<span title="${notes.replace(/"/g, '&quot;')}">${notes}</span>` : '-';
 
         return `
             <tr>
@@ -298,6 +302,7 @@ function renderReadings() {
                 <td>${reading.diastolic}</td>
                 <td>${reading.pulse}</td>
                 <td><span class="category-badge category-${category.class}">${category.name}</span></td>
+                <td class="notes-cell">${notesDisplay}</td>
                 <td>
                     <button class="btn btn-danger" onclick="deleteReading('${reading.id}')" title="Delete">
                         &#x2715;
@@ -317,18 +322,24 @@ function exportToCSV() {
         return;
     }
 
-    const headers = ['Date', 'Time', 'Systolic (mmHg)', 'Diastolic (mmHg)', 'Pulse (bpm)', 'Category'];
+    const headers = ['Date', 'Time', 'Systolic (mmHg)', 'Diastolic (mmHg)', 'Pulse (bpm)', 'Category', 'Notes'];
 
     const rows = readings.map(reading => {
         const date = new Date(reading.timestamp);
         const category = getBPCategory(reading.systolic, reading.diastolic);
+        const notes = reading.notes || '';
+        // Escape notes for CSV (wrap in quotes if contains comma, quote, or newline)
+        const escapedNotes = notes.includes(',') || notes.includes('"') || notes.includes('\n')
+            ? `"${notes.replace(/"/g, '""')}"`
+            : notes;
         return [
             date.toLocaleDateString(),
             date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             reading.systolic,
             reading.diastolic,
             reading.pulse,
-            category.name
+            category.name,
+            escapedNotes
         ];
     });
 

@@ -38,12 +38,13 @@ Users who want to track their blood pressure privately have limited options. Cuf
 |---------|-------------|
 | **Password-Protected Encryption** | AES-256-GCM encryption with PBKDF2 key derivation (100,000 iterations) |
 | **Add Readings** | Log systolic, diastolic, pulse with date/time |
+| **Notes Field** | Optional text notes for context (e.g., "after coffee", "feeling stressed") |
 | **Outlier Validation** | Confirmation prompt for unusual values (systolic >180/<70, diastolic >120/<40, pulse >150/<40) |
-| **Readings List** | Table view with delete functionality |
+| **Readings List** | Table view with notes and delete functionality |
 | **BP Categories** | Automatic classification: Normal, Elevated, High Stage 1, High Stage 2, Crisis |
 | **Statistics Dashboard** | Averages for 7-day, 30-day, and all-time periods with min/max ranges |
 | **Trend Chart** | Line chart visualization with 7-day, 30-day, all-time filters |
-| **CSV Export** | Export readings for spreadsheets or sharing with healthcare providers |
+| **CSV Export** | Export readings with notes for spreadsheets or sharing with healthcare providers |
 | **Backup & Restore** | Encrypted or plain JSON backup files with merge support |
 | **Change Password** | Re-encrypt all data with a new password |
 | **Dark Mode UI** | Dark theme optimized for reduced eye strain |
@@ -93,7 +94,8 @@ cuff/
   "systolic": 120,
   "diastolic": 80,
   "pulse": 72,
-  "timestamp": "2026-01-10T14:30:00.000Z"
+  "timestamp": "2026-01-10T14:30:00.000Z",
+  "notes": "After morning coffee"
 }
 ```
 
@@ -184,7 +186,6 @@ cuff/
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| Notes field | Medium | Free-text notes per reading |
 | Reading tags | Medium | Quick tags (Morning, Evening, Post-exercise) |
 | PWA support | Medium | Installable app with offline manifest |
 | Print view | Low | Printer-friendly format for doctor visits |
@@ -205,4 +206,5 @@ cuff/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | Jan 2026 | Add notes field for reading context |
 | 1.0 | Jan 2026 | Initial release with core features |
