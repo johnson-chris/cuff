@@ -30,6 +30,7 @@ const passwordSubmit = document.getElementById('password-submit');
 
 let pendingReading = null;
 let cachedReadings = []; // Cache readings in memory
+let cachedMedications = []; // Cache medications in memory
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -102,14 +103,18 @@ function hidePasswordError() {
     passwordError.style.display = 'none';
 }
 
-function unlockApp() {
+async function unlockApp() {
     passwordModal.classList.remove('active');
     document.body.classList.remove('app-locked');
+
+    // Load medications
+    cachedMedications = await window.CryptoModule.loadEncryptedMedications();
 
     // Initialize the main app
     setDefaultDateTime();
     renderReadings();
     renderStats();
+    renderMedications();
     initEventListeners();
 
     // Initialize chart
@@ -142,6 +147,14 @@ function initEventListeners() {
     document.getElementById('change-password-form').addEventListener('submit', handleChangePassword);
     document.getElementById('change-password-modal').addEventListener('click', (e) => {
         if (e.target.id === 'change-password-modal') closeChangePasswordModal();
+    });
+
+    // Medications
+    document.getElementById('add-medication-btn').addEventListener('click', openMedicationModal);
+    document.getElementById('medication-cancel').addEventListener('click', closeMedicationModal);
+    document.getElementById('medication-form').addEventListener('submit', handleMedicationSubmit);
+    document.getElementById('medication-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'medication-modal') closeMedicationModal();
     });
 }
 
@@ -614,5 +627,147 @@ async function handleChangePassword(e) {
     }
 }
 
-// Make deleteReading available globally for onclick handlers
+// Medication Functions
+function getMedications() {
+    return cachedMedications;
+}
+
+async function saveMedications(medications) {
+    cachedMedications = medications;
+    await window.CryptoModule.saveEncryptedMedications(medications);
+}
+
+async function addMedication(medication) {
+    const medications = getMedications();
+    medications.push(medication);
+    await saveMedications(medications);
+}
+
+async function updateMedication(id, updates) {
+    const medications = getMedications().map(m =>
+        m.id === id ? { ...m, ...updates } : m
+    );
+    await saveMedications(medications);
+}
+
+async function deleteMedication(id) {
+    if (!confirm('Are you sure you want to delete this medication?')) {
+        return;
+    }
+    const medications = getMedications().filter(m => m.id !== id);
+    await saveMedications(medications);
+    renderMedications();
+}
+
+function renderMedications() {
+    const medications = getMedications();
+    const listEl = document.getElementById('medications-list');
+
+    if (medications.length === 0) {
+        listEl.innerHTML = '<p class="no-data-message" id="no-medications">No medications added. Track your BP medications here.</p>';
+        return;
+    }
+
+    listEl.innerHTML = medications.map(med => {
+        const timeDisplay = med.timeOfDay ? ` - ${med.timeOfDay}` : '';
+        return `
+            <div class="medication-card">
+                <div class="medication-info">
+                    <div class="medication-name">${escapeHtml(med.name)}</div>
+                    <div class="medication-details">${escapeHtml(med.dosage)} • ${escapeHtml(med.frequency)}${timeDisplay}</div>
+                </div>
+                <div class="medication-actions">
+                    <button class="btn btn-secondary" onclick="editMedication('${med.id}')">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteMedication('${med.id}')">Delete</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function openMedicationModal(medicationId = null) {
+    const modal = document.getElementById('medication-modal');
+    const title = document.getElementById('medication-modal-title');
+    const form = document.getElementById('medication-form');
+    const idInput = document.getElementById('medication-id');
+
+    form.reset();
+    document.getElementById('medication-error').style.display = 'none';
+
+    if (medicationId) {
+        const medication = getMedications().find(m => m.id === medicationId);
+        if (medication) {
+            title.textContent = 'Edit Medication';
+            idInput.value = medication.id;
+            document.getElementById('medication-name').value = medication.name;
+            document.getElementById('medication-dosage').value = medication.dosage;
+            document.getElementById('medication-frequency').value = medication.frequency;
+            document.getElementById('medication-time').value = medication.timeOfDay || '';
+        }
+    } else {
+        title.textContent = 'Add Medication';
+        idInput.value = '';
+    }
+
+    modal.classList.add('active');
+    document.getElementById('medication-name').focus();
+}
+
+function closeMedicationModal() {
+    document.getElementById('medication-modal').classList.remove('active');
+    document.getElementById('medication-form').reset();
+    document.getElementById('medication-error').style.display = 'none';
+}
+
+async function handleMedicationSubmit(e) {
+    e.preventDefault();
+
+    const idInput = document.getElementById('medication-id');
+    const name = document.getElementById('medication-name').value.trim();
+    const dosage = document.getElementById('medication-dosage').value.trim();
+    const frequency = document.getElementById('medication-frequency').value;
+    const timeOfDay = document.getElementById('medication-time').value;
+    const errorEl = document.getElementById('medication-error');
+
+    if (!name || !dosage || !frequency) {
+        errorEl.textContent = 'Please fill in all required fields';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const medication = {
+        id: idInput.value || generateId(),
+        name,
+        dosage,
+        frequency,
+        timeOfDay: timeOfDay || null
+    };
+
+    try {
+        if (idInput.value) {
+            await updateMedication(medication.id, medication);
+        } else {
+            await addMedication(medication);
+        }
+        closeMedicationModal();
+        renderMedications();
+    } catch (error) {
+        errorEl.textContent = 'Failed to save medication: ' + error.message;
+        errorEl.style.display = 'block';
+    }
+}
+
+function editMedication(id) {
+    openMedicationModal(id);
+}
+
+// Make functions available globally for onclick handlers
 window.deleteReading = deleteReading;
+window.deleteMedication = deleteMedication;
+window.editMedication = editMedication;

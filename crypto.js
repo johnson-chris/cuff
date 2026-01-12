@@ -1,6 +1,7 @@
 // BP Tracker - Encryption Module using Web Crypto API
 
 const CRYPTO_STORAGE_KEY = 'bp-tracker-encrypted';
+const MEDICATIONS_STORAGE_KEY = 'bp-tracker-medications';
 const SALT_KEY = 'bp-tracker-salt';
 const VERIFY_KEY = 'bp-tracker-verify';
 
@@ -191,6 +192,35 @@ function isEncryptionReady() {
     return derivedKey !== null;
 }
 
+// Save medications (encrypted)
+async function saveEncryptedMedications(medications) {
+    if (!derivedKey) {
+        throw new Error('Encryption not initialized');
+    }
+
+    const encrypted = await encryptData(medications, derivedKey);
+    localStorage.setItem(MEDICATIONS_STORAGE_KEY, JSON.stringify(encrypted));
+}
+
+// Load medications (decrypted)
+async function loadEncryptedMedications() {
+    if (!derivedKey) {
+        throw new Error('Encryption not initialized');
+    }
+
+    const stored = localStorage.getItem(MEDICATIONS_STORAGE_KEY);
+    if (!stored) {
+        return [];
+    }
+
+    try {
+        return await decryptData(JSON.parse(stored), derivedKey);
+    } catch (e) {
+        console.error('Failed to decrypt medications:', e);
+        return [];
+    }
+}
+
 // Create encrypted backup object
 async function createEncryptedBackup(readings) {
     if (!derivedKey) {
@@ -266,6 +296,13 @@ async function changePassword(currentPassword, newPassword) {
         readings = await decryptData(JSON.parse(storedReadings), testKey);
     }
 
+    // Load current medications with old key
+    const storedMedications = localStorage.getItem(MEDICATIONS_STORAGE_KEY);
+    let medications = [];
+    if (storedMedications) {
+        medications = await decryptData(JSON.parse(storedMedications), testKey);
+    }
+
     // Generate new salt and derive new key
     const newSalt = generateSalt();
     const newKey = await deriveKey(newPassword, newSalt);
@@ -281,6 +318,10 @@ async function changePassword(currentPassword, newPassword) {
     const newEncryptedReadings = await encryptData(readings, newKey);
     localStorage.setItem(CRYPTO_STORAGE_KEY, JSON.stringify(newEncryptedReadings));
 
+    // Re-encrypt medications with new key
+    const newEncryptedMedications = await encryptData(medications, newKey);
+    localStorage.setItem(MEDICATIONS_STORAGE_KEY, JSON.stringify(newEncryptedMedications));
+
     // Update the active key
     derivedKey = newKey;
 
@@ -293,6 +334,8 @@ window.CryptoModule = {
     initializeEncryption,
     saveEncryptedReadings,
     loadEncryptedReadings,
+    saveEncryptedMedications,
+    loadEncryptedMedications,
     isEncryptionReady,
     createEncryptedBackup,
     decryptBackup,
