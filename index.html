@@ -99,6 +99,17 @@
             <p class="no-data-message" id="no-readings">No readings yet. Add your first reading above.</p>
         </section>
 
+        <!-- Medications -->
+        <section class="card" id="medications-section">
+            <div class="section-header">
+                <h2>Medications</h2>
+                <button class="btn btn-primary btn-sm" id="add-medication-btn">+ Add Medication</button>
+            </div>
+            <div id="medications-list">
+                <p class="no-data-message" id="no-medications">No medications added. Track your BP medications here.</p>
+            </div>
+        </section>
+
         <!-- Backup & Restore -->
         <section class="card" id="backup-section">
             <h2>Backup & Restore</h2>
@@ -202,6 +213,50 @@
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-secondary" id="change-password-cancel">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="change-password-submit">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Medication Modal -->
+    <div class="modal" id="medication-modal">
+        <div class="modal-content">
+            <h3 id="medication-modal-title">Add Medication</h3>
+            <form id="medication-form">
+                <input type="hidden" id="medication-id">
+                <div class="form-group">
+                    <label for="medication-name">Medication Name</label>
+                    <input type="text" id="medication-name" placeholder="e.g., Lisinopril" required>
+                </div>
+                <div class="form-group">
+                    <label for="medication-dosage">Dosage</label>
+                    <input type="text" id="medication-dosage" placeholder="e.g., 10mg" required>
+                </div>
+                <div class="form-group">
+                    <label for="medication-frequency">Frequency</label>
+                    <select id="medication-frequency" required>
+                        <option value="">Select frequency...</option>
+                        <option value="Once daily">Once daily</option>
+                        <option value="Twice daily">Twice daily</option>
+                        <option value="Three times daily">Three times daily</option>
+                        <option value="As needed">As needed</option>
+                        <option value="Weekly">Weekly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="medication-time">Time of Day</label>
+                    <select id="medication-time">
+                        <option value="">Any time</option>
+                        <option value="Morning">Morning</option>
+                        <option value="Afternoon">Afternoon</option>
+                        <option value="Evening">Evening</option>
+                        <option value="Bedtime">Bedtime</option>
+                    </select>
+                </div>
+                <p class="error-message" id="medication-error" style="display: none;"></p>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="medication-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="medication-submit">Save Medication</button>
                 </div>
             </form>
         </div>

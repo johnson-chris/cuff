@@ -558,3 +558,65 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+/* Medications */
+.medication-card {
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.medication-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.medication-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.medication-details {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.medication-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.medication-actions .btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+/* Form select styling */
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+}
+
+.form-group select option {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}

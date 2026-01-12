@@ -40,6 +40,7 @@ Users who want to track their blood pressure privately have limited options. Cuf
 | **Add Readings** | Log systolic, diastolic, pulse with date/time |
 | **Notes Field** | Optional text notes for context (e.g., "after coffee", "feeling stressed") |
 | **Outlier Validation** | Confirmation prompt for unusual values (systolic >180/<70, diastolic >120/<40, pulse >150/<40) |
+| **Medication Tracker** | Log BP medications with name, dosage, frequency, and time of day |
 | **Readings List** | Table view with notes and delete functionality |
 | **BP Categories** | Automatic classification: Normal, Elevated, High Stage 1, High Stage 2, Crisis |
 | **Statistics Dashboard** | Averages for 7-day, 30-day, and all-time periods with min/max ranges |
@@ -96,6 +97,17 @@ cuff/
   "pulse": 72,
   "timestamp": "2026-01-10T14:30:00.000Z",
   "notes": "After morning coffee"
+}
+```
+
+**Medication Object:**
+```json
+{
+  "id": "mxyz456def",
+  "name": "Lisinopril",
+  "dosage": "10mg",
+  "frequency": "Once daily",
+  "timeOfDay": "Morning"
 }
 ```
 
@@ -191,7 +203,6 @@ cuff/
 | Print view | Low | Printer-friendly format for doctor visits |
 | Data visualization | Low | Additional chart types (distribution, calendar heatmap) |
 | Multiple profiles | Low | Track readings for family members |
-| Medication log | Low | Correlate BP with medications |
 
 ---
 
@@ -206,5 +217,6 @@ cuff/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | Jan 2026 | Add medication tracker for BP medications |
 | 1.1 | Jan 2026 | Add notes field for reading context |
 | 1.0 | Jan 2026 | Initial release with core features |
